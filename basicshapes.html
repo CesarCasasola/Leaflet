@@ -1,0 +1,60 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+        integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+        crossorigin="">
+        <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+        integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+        crossorigin=""></script>
+        <style>
+            #mapid{
+                height: 50%;
+            }
+        </style>
+    </head>
+    <body>
+        
+        <div id="mapid"></div>
+        <script>
+                var mymap = L.map('mapid').setView([14.966013251567164, -88.26416015625], 5.5);
+                L.tileLayer(/*'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}'*/'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+                    //attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                    attribution:  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr/" target="_blank">OpenStreetMap France</a>',
+                    maxZoom:    18,
+                    //id: 'mapbox.streets',
+                    //accessToken: 'pk.eyJ1IjoiY2VzYXItYyIsImEiOiJjanc4bjRzb2QxeW1oNDRubnh2MGNmb2ZiIn0.IVaDO7DWTv_LYV8It9waSw',                    
+                }).addTo(mymap);
+
+                //options object
+                let shapestyle = {
+                    color: 'white',
+                    fillColor: 'gray',
+                    weight: 0.5,
+                    fillOpacity: 0.5,
+                    radius: 500,
+                };
+                var marker = L.marker([51.5, -0.09]).addTo(mymap);
+                var circle = L.circle([14.966013251567164, -88.26416015625], shapestyle).addTo(mymap);
+                var polygon = L.polygon([
+                    [14.966013251567164, -88.26416015625],
+                    [14.866013251567164, -88.16416015625],
+                    [14.986013251567164, -88.36416015625]
+                ], shapestyle).addTo(mymap);
+                marker.bindPopup('<b>Hello world!</b></br>I am a pop up.');
+                circle.bindPopup('I am a circle');
+                polygon.bindPopup('I am a polygon');
+                var popup = L.popup()
+                    .setLatLng([51.5, -0.09])
+                    .setContent('I am a standalone popup');
+
+                function onMapClick(e){
+                    popup
+                        .setLatLng(e.latlng)
+                        .setContent("You clicked the map on: Lat:"+e.latlng.lat+", Long: "+e.latlng.lng)
+                        .openOn(mymap);
+                    mymap.setView(e.latlng, 10);
+                }
+                mymap.on('click', onMapClick);
+        </script>
+    </body>
+</html>
