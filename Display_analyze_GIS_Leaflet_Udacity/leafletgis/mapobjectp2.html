@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="src/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="src/bootstrap/css/bootstrap.min.css">
+    <script src="src/jquery-3.4.1.min.js"></script>
+    <script src="src/leaflet/leaflet-src.js"></script>
+    <style>
+        #map{
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div class="row">
+        <div class="col-sm-3" id="side-bar"></div>
+        <div class="col-sm-9" id="map"></div>
+    </div>    
+    <script>
+        var map, lyrOSM;
+        $(document).ready(function () {
+            map = L.map('map', {
+               center: [14.4, -89.2],
+               zoom:    8, 
+               zoomControl: false,
+               dragging: false,
+               maxZoom: 8,
+            });
+            lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+            map.addLayer(lyrOSM);
+
+            //map event handler
+            map.on('click', function(e){
+                if (e.originalEvent.shiftKey) {
+                    alert(map.getZoom());
+                }else{
+                    console.log(e.latlng.toString());
+                }
+            });
+
+            map.on('contextmenu', function(e){
+                var dt = new Date();
+                L.marker(e.latlng).addTo(map).bindPopup(e.latlng.toString()+ 
+                '</br>'+dt.toString());
+            });
+        });
+    </script>
+</body>
+</html>
