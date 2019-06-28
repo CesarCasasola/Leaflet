@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Web map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="src/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="src/bootstrap/css/bootstrap.css">
+    <script src="src/jquery-3.4.1.min.js"></script>
+    <script src="src/leaflet/leaflet-src.js"></script>
+    <style>
+            #mapdiv{
+                height: 100vh;
+            }
+        </style>
+</head>
+<body>    
+    <div class="container">
+        <div class="row">
+            <div id="side-bar" class="col-md-3"></div>
+            <div id="mapdiv" class="col-md-9"></div>
+        </div>
+    </div>
+    
+    
+    <script>
+        var map, lyrOSM;
+        $('document').ready(function (){
+            map = L.map('mapdiv', {
+                center: [14.5, -89.98],
+                zoom: 13,
+            });
+            lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+            map.addLayer(lyrOSM);
+        });        
+    </script>
+</body>
+</html>

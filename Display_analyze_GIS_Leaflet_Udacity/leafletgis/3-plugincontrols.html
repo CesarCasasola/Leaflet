@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Plugin controls</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="src/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="src/leaflet/leaflet.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/pancontrol/L.Control.Pan.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/pancontrol/L.Control.Pan.ie.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/geonames/L.Control.Geonames.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/mouseposition/L.Control.MousePosition.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/polylinemeasure/Leaflet.PolylineMeasure.css">
+    <script src="src/jquery-3.4.1.min.js"></script>
+    <script src="src/leaflet/leaflet-src.js"></script>
+    <script src="src/leaflet/plugins/pancontrol/L.Control.Pan.js"></script>
+    <script src="src/leaflet/plugins/geonames/L.Control.Geonames.min.js"></script>
+    <script src="src/leaflet/plugins/mouseposition/L.Control.MousePosition.js"></script>
+    <script src="src/leaflet/plugins/polylinemeasure/Leaflet.PolylineMeasure.js"></script>
+    <style>
+        #map{
+            height: 99vh;
+        }
+    </style>
+</head>
+<body>
+    <div class="row">
+            <div id="side-bar" class="col-md-3"></div>
+            <div id="map" class="col-md-9"></div>
+    </div>
+    
+
+    <script>
+        var map;
+        var layerOSM;
+        var attributionControl;
+        var geonamesControl;
+        var zoomControl;
+        $(document).ready(function(){
+            map  = L.map('map', {
+                center: [14.4, -89.2],
+                zoom: 8,
+                attributionControl: false,
+                zoomControl: false,
+            });
+            layerOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+            map.addLayer(layerOSM);
+
+            geonamesControl = L.control.geonames({
+                geonamesSearch: 'https://secure.geonames.org/searchJSON', // Override this if using a proxy to get connection to geonames.
+                zoomLevel:      10,
+                username:       'cecmiranda',
+                maxresults:     10,
+                lang:           'es',
+                showMarker:     false,
+            });
+            map.addControl(geonamesControl);
+            L.control.zoom({position: 'topleft'}).addTo(map);
+            L.control.pan().addTo(map);
+            //L.control.mousePosition().addTo(map);
+            L.control.polylineMeasure().addTo(map);
+
+            
+
+            attributionControl = L.control.attribution().addTo(map);
+            attributionControl.addAttribution('OSM');
+        });
+    </script>
+</body>
+</html>
