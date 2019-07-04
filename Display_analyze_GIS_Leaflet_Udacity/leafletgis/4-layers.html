@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Layers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="src/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="src/leaflet/leaflet.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/sidebar/L.Control.Sidebar.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/easybutton/easy-button.css">
+    <script src="src/jquery-3.4.1.min.js"></script>
+    <script src="src/bootstrap/js/bootstrap.min.js"></script>
+    <script src="src/leaflet/leaflet-src.js"></script>
+    <script src="src/leaflet/plugins/leaflet-providers/leaflet-providers.js"></script>
+    <script src="src/leaflet/plugins/sidebar/L.Control.Sidebar.js"></script>
+    <script src="src/leaflet/plugins/easybutton/easy-button.js"></script>
+    <style>
+        #map{
+            height: 99vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h5>Image opacity: <span id="image-opacity">0.5</span></h5>
+        <input type="range" id="slider-opacity" min="0" max="1" step="0.1" value="0.5">
+    </div>
+    <div id="map" class="col-md-12"></div>
+    
+    
+    <script>
+        var map;
+        var lyrOSM;
+        var openTopoMap;
+        var lyrWaterColor;
+        var lyrImagery;
+        var lyrOutdoors;
+        var baseLayers;
+        var overlys;
+        var ctlLayers;
+        var lyrChapultepec;
+        var sidebar;
+        $(document).ready(function(){
+            map = L.map('map', {
+                center: [19.42993, -99.20843],
+                zoom: 14,
+                layerControl: true,
+                attributionControl: false,
+            });
+            lyrOSM = L.tileLayer.provider('OpenStreetMap.Mapnik');
+            openTopoMap = L.tileLayer.provider('OpenTopoMap');
+            lyrWaterColor = L.tileLayer.provider('Stamen.Watercolor');
+            lyrImagery = L.tileLayer.provider('Esri.WorldImagery');
+            lyrOutdoors = L.tileLayer.provider('Thunderforest.Outdoors');
+            map.addLayer(lyrOSM);
+
+            baseLayers = {
+                "Open Street Map" :    lyrOSM,
+                "Topo Map"  :          openTopoMap,
+                "Imagery"   :          lyrImagery,
+                "Outdoors"  :          lyrOutdoors,
+                "Water color":         lyrWaterColor, 
+            };
+
+            lyrChapultepec = L.imageOverlay('img/chapultepec.png', 
+                [
+                    [19.42993, -99.20843], 
+                    [19.40621, -99.17453]
+                ]
+            );
+
+            overlys = {
+                "Chapultepec Imagery": lyrChapultepec,
+            };
+
+            ctlLayers = L.control.layers(baseLayers, overlys).addTo(map);
+            
+            var ctlAttribute = L.control.attribution({position:'bottomright'}).addTo(map);
+                ctlAttribute.addAttribution('&copy; <a href="http://millermountain.com">Miller Mountain LLC</a>');
+            
+                sidebar = L.control.sidebar('sidebar', {
+                position: 'left',
+                closeButton: true,
+                autoPan:    true,
+            }).addTo(map);
+
+            setTimeout( function(){
+
+            }, 500);
+
+            L.easyButton({
+                states: [
+                {
+                    stateName: 'openSideBar',
+                    icon:       'far fa-caret-square-right',
+                    title:      'Open side bar',
+                    onClick:    function(btn, map){
+                        sidebar.show();
+                        btn.state('closeSideBar');
+                    }
+                },
+                {
+                    stateName:  'closeSideBar',
+                    icon:       'far fa-caret-square-left',
+                    title:      'Close side bar',
+                    onClick:    function(btn, map){
+                        sidebar.hide();
+                        btn.state('openSideBar');
+                    }
+                }                
+                ]
+            }).addTo(map);
+
+            $('#slider-opacity').on('change', function(){
+                $('#image-opacity').html(this.value);
+                lyrChapultepec.setOpacity(this.value);
+            });
+
+        });
+    </script>
+</body>
+</html>

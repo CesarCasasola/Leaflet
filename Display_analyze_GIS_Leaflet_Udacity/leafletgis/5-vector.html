@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Layers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="src/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="src/leaflet/leaflet.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/sidebar/L.Control.Sidebar.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/easybutton/easy-button.css">
+    <script src="src/jquery-3.4.1.min.js"></script>
+    <script src="src/bootstrap/js/bootstrap.min.js"></script>
+    <script src="src/leaflet/leaflet-src.js"></script>
+    <script src="src/leaflet/plugins/leaflet-providers/leaflet-providers.js"></script>
+    <script src="src/leaflet/plugins/sidebar/L.Control.Sidebar.js"></script>
+    <script src="src/leaflet/plugins/easybutton/easy-button.js"></script>
+    <script src="src/leaflet/plugins/leaflet-ajax/leaflet.ajax.min.js"></script>
+    <style>
+        #map{
+            height: 99vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h5>Image opacity: <span id="image-opacity">0.5</span></h5>
+        <input type="range" id="slider-opacity" min="0" max="1" step="0.1" value="0.5">
+        <button id="btnMuseum" class="btn btn-primary btn-block">Zoom to Anthropology Museum</button>
+        <button id="btnBikeRoute" class="btn btn-success btn-block">Zoom to Bike Route</button>
+        <button id="btnAddMuseum" class="btn btn-block">Add Museum</button>
+        <button id="btnColor" class="btn btn-warning btn-block">Change color</button>
+
+
+    </div>
+    <div id="map"></div>
+    
+    
+    <script>
+        var map;
+        var lyrOSM;
+        var openTopoMap;
+        var lyrWaterColor;
+        var lyrImagery;
+        var lyrOutdoors;
+        var baseLayers;
+        var overlys;
+        var ctlLayers;
+        var lyrChapultepec;
+        var sidebar;
+        var mkrMuseum;
+        var plnBike;
+        var plgParks;
+        var fgpChapultepec;
+        var lyrSchools;
+
+        $(document).ready(function(){
+            map = L.map('map', {
+                center: [14.42993, -96.35843],
+                zoom: 6,
+                layerControl: true,
+                attributionControl: false,
+            });
+            lyrOSM = L.tileLayer.provider('OpenStreetMap.Mapnik');
+            openTopoMap = L.tileLayer.provider('OpenTopoMap');
+            lyrWaterColor = L.tileLayer.provider('Stamen.Watercolor');
+            lyrImagery = L.tileLayer.provider('Esri.WorldImagery');
+            lyrOutdoors = L.tileLayer.provider('Thunderforest.Outdoors');
+            map.addLayer(lyrOSM);
+
+            baseLayers = {
+                "Open Street Map" :    lyrOSM,
+                "Topo Map"  :          openTopoMap,
+                "Imagery"   :          lyrImagery,
+                "Outdoors"  :          lyrOutdoors,
+                "Water color":         lyrWaterColor, 
+            };
+
+            lyrChapultepec = L.imageOverlay('img/chapultepec.png', 
+                [
+                    [19.42993, -99.20843], 
+                    [19.40621, -99.17453]
+                ]
+            );
+
+            //marker
+            mkrMuseum = L.marker([19.42596, -99.1862], {draggable: true});
+            mkrMuseum.bindTooltip('Anthropology Museum');
+
+            mkrMuseum.on('dragend', function(){
+                mkrMuseum.setTooltipContent("Current location: "+mkrMuseum.getLatLng().toString()+"<br>"+
+                    "Distance to Anthropology Museum: "+mkrMuseum.getLatLng().distanceTo([19.42596, -99.1862]).toFixed(0));
+            });
+
+            $('#btnMuseum').click(function(){
+                map.setView([19.42596, -99.1862], 14);
+                mkrMuseum.setLatLng([19.42596, -99.1862]);
+                mkrMuseum.setTooltipContent("Anthropology Museum");
+            });
+
+            //polygon
+            plgParks = L.polygon(
+                [
+                    [    
+                        [[19.4068, -99.2015], [19.4166, -99.1803], [19.4299, -99.1825], [19.4191, -99.2056]],
+                        [[19.4216, -99.1853], [19.4217, -99.1843], [19.4241, -99.1848], [19.4245, -99.1872]],
+                    ],
+                    [[[19.4042, -99.1895], [19.405, -99.1884], [19.4076, -99.1898], [19.4055, -99.1909]]]
+                ],
+                {
+                    color: 'red',
+                    fillColor: 'yellow',
+                    fillOpacity: 0.8,
+                }
+            );
+
+
+            //polyline
+            plnBike = L.polyline( [
+                [[19.4138, -99.1876], [19.4167, -99.188], [19.4165, -99.1873], [19.4214, -99.1872], [19.4215, -99.1841], [19.4258, -99.1843], [19.4259, -99.1852]],
+                [[19.4215, -99.1865], [19.4251, -99.1881], [19.4246, -99.1843]]
+                ],
+            {
+                color: 'green'
+            } );
+
+            $('#btnBikeRoute').click(function(){
+                map.fitBounds(plnBike.getBounds());
+            });
+
+            fgpChapultepec = L.featureGroup([plnBike, plgParks]);
+
+            //geoJSON overlay
+            lyrSchools = new L.GeoJSON.AJAX("data/monosexschoolsgt.geojson", {
+                pointToLayer: makeSchoolMarker,
+                filter:       filterSchools,
+            }).addTo(map);
+            lyrSchools.on('data:loaded', function(){
+                map.fitBounds(lyrSchools.getBounds());
+            });
+
+
+            overlys = {
+                "Chapultepec Imagery": lyrChapultepec,
+                "Chapultepec Vectors" : fgpChapultepec,
+                "Escuelas segregadas (genero)":  lyrSchools,
+            };
+
+            
+            var ctlAttribute = L.control.attribution({position:'bottomright'}).addTo(map);
+                ctlAttribute.addAttribution('&copy; <a href="http://millermountain.com">Miller Mountain LLC</a>');
+                sidebar = L.control.sidebar('sidebar', {
+                position: 'left',
+                closeButton: true,
+                autoPan:    true,
+            }).addTo(map);
+
+            setTimeout( function(){
+
+            }, 500);
+
+            L.easyButton({
+                states: [
+                {
+                    stateName: 'openSideBar',
+                    icon:       'far fa-caret-square-right',
+                    title:      'Open side bar',
+                    onClick:    function(btn, map){
+                        sidebar.show();
+                        btn.state('closeSideBar');
+                    }
+                },
+                {
+                    stateName:  'closeSideBar',
+                    icon:       'far fa-caret-square-left',
+                    title:      'Close side bar',
+                    onClick:    function(btn, map){
+                        sidebar.hide();
+                        btn.state('openSideBar');
+                    }
+                }                
+                ]
+            }).addTo(map);
+
+            $('#slider-opacity').on('change', function(){
+                $('#image-opacity').html(this.value);
+                lyrChapultepec.setOpacity(this.value);
+            });     
+
+
+            ctlLayers = L.control.layers(baseLayers, overlys).addTo(map);
+
+            $('#btnAddMuseum').click(function(){
+                if(fgpChapultepec.hasLayer(mkrMuseum)){
+                    fgpChapultepec.removeLayer(mkrMuseum);
+                    $('#btnAddMuseum').html("Add Museum");
+                }else{
+                    fgpChapultepec.addLayer(mkrMuseum);
+                    $('#btnAddMuseum').html("Remove Museum");
+                }
+            });
+
+            $('#btnColor').click(function(){
+                fgpChapultepec.setStyle({
+                    color: 'purple',
+                    fillColor: 'pink',
+                    fillOpacity: 0.8,
+                })
+            });
+        });
+
+        function makeSchoolMarker(geoJSONPoint, latLng){
+            var att = geoJSONPoint.properties;
+            var color = "deeppink";
+            if(att.genero === "HOMBRES"){
+                color = "blue";
+            }
+            return L.circleMarker(latLng, {
+                radius: 10,
+                color: color,
+            }).bindTooltip('<h4>Escuela de '+att.genero+'</h4><p>Nombre:'+att.nombre+'</p>');
+        }
+
+        function filterSchools(geoJsonFeature){
+            if(geoJsonFeature.properties.estado === "ABIERTA"){
+                return true;
+            }else{
+                return false;
+            }
+        }
+    </script>
+</body>
+</html>

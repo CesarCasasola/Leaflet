@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Project UTM to WGS84</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="../src/leaflet/leaflet.css" />
+    <script src="../src/jquery-3.4.1.min.js"></script>
+    <script src="../src/leaflet/leaflet-src.js"></script>
+    <script src="../src/leaflet/plugins/leafletutm/L.LatLng.UTM.js"></script>
+    <style>
+        #map{
+            height: 70vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="form">
+        <h1>Project UTM to WGS84 with Leaflet</h1>
+        <form action="">
+            <fieldset>
+                <legend>UTM</legend>
+                <div>
+                        <label for="utm-x">X</label>
+                        <input type="number" id="utm-x">
+                    </div>
+                    <div>
+                        <label for="utm-y">Y</label>
+                        <input type="number" id="utm-y">
+                    </div>
+                    <div>
+                        <label for="utm-zone">Zone</label>
+                        <select name="utm-zone" id="utm-zone" style="width: 170px;">
+                            <option value=""></option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                        </select>
+                    </div>
+            </fieldset>
+            <fieldset>
+                <legend>WGS84</legend>
+                    <div>
+                        <label for="lat">Latitude</label>
+                        <input type="number" id="lat">
+                    </div>
+                    <div>
+                        <label for="lng">Longitude</label>
+                        <input type="number" id="lng">
+                    </div>
+            </fieldset>      
+        </form>
+    </div>
+
+    <div id="map"></div>
+
+    <script>
+        var map;
+        var lyrOSM;
+        var marker = L.marker();
+        $(document).ready(function(){
+            map = L.map('map', {center: [15.0, -89.2], zoom: 7,});
+            lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+            map.addLayer(lyrOSM);
+            $('#utm-x').on('change', onUTMDataChange);
+            $('#utm-y').on('change', onUTMDataChange);
+            $('#utm-zone').on('change', onUTMDataChange);
+        });
+
+        function onUTMDataChange(){
+            console.log('onUTMDataChange');
+            if(isUTMDataComplete()){
+                let utmCoords = L.utm({
+                    x:  Number($('#utm-x')[0].value),
+                    y:  Number($('#utm-y')[0].value),
+                    zone: Number($('#utm-zone option:selected').val()),
+                    southHemi: false,
+                });
+                let wgs84Coords = utmCoords.latLng();
+                console.log({utmCoords, wgs84Coords});
+
+                $('#lat').val(wgs84Coords.lat);
+                $('#lng').val(wgs84Coords.lng);
+                marker.setLatLng(wgs84Coords).addTo(map);
+                map.setView(wgs84Coords, 15);
+            }
+        }
+
+        function isUTMDataComplete(){
+            if($('#utm-x')[0].value != "" && $('#utm-y')[0].value != "" && $('#utm-zone option:selected').val() != ""){
+                return true;
+            }else{
+                return false;
+            }
+        }
+    </script>
+       
+</body>
+</html>

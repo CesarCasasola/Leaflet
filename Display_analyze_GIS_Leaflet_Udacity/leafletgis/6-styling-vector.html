@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Layers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="src/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="src/leaflet/leaflet.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/sidebar/L.Control.Sidebar.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/easybutton/easy-button.css">
+    <link rel="stylesheet" href="src/fa/css/all.min.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/leaflet-awesome-markers/leaflet.awesome-markers.css">
+    <script src="src/jquery-3.4.1.min.js"></script>
+    <script src="src/bootstrap/js/bootstrap.min.js"></script>
+    <script src="src/leaflet/leaflet-src.js"></script>
+    <script src="src/leaflet/plugins/leaflet-providers/leaflet-providers.js"></script>
+    <script src="src/leaflet/plugins/sidebar/L.Control.Sidebar.js"></script>
+    <script src="src/leaflet/plugins/easybutton/easy-button.js"></script>
+    <script src="src/leaflet/plugins/leaflet-ajax/leaflet.ajax.min.js"></script>
+    <script src="src/leaflet/plugins/leaflet-sprite/leaflet.sprite.js"></script>
+    <script src="src/leaflet/plugins/leaflet-awesome-markers/leaflet.awesome-markers.min.js"></script>
+    <style>
+        #map{
+            height: 99vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        
+    </div>
+    <div id="map"></div>
+    
+    
+    <script>
+        var map;
+        var lyrOsmHot;
+        var lyrOsmMapnik;
+        var openTopoMap;
+        var lyrWaterColor;
+        var lyrImagery;
+        var lyrOutdoors;
+        var baseLayers;
+        var overlys;
+        var ctlLayers;
+        var lyrSchools;
+        var spriteRed;
+        var spriteViolet;
+        var iconLAMMale;
+        var iconLAMFemale;
+
+        $(document).ready(function(){
+            map = L.map('map', {
+                center: [15.42993, -99.35843],
+                zoom: 6,
+                layerControl: true,
+                attributionControl: false,
+            });
+            lyrOsmHot = L.tileLayer.provider('OpenStreetMap.HOT');
+            lyrOsmMapnik = L.tileLayer.provider('OpenStreetMap.Mapnik');
+            openTopoMap = L.tileLayer.provider('OpenTopoMap');
+            lyrWaterColor = L.tileLayer.provider('Stamen.Watercolor');
+            lyrImagery = L.tileLayer.provider('Esri.WorldImagery');
+            lyrOutdoors = L.tileLayer.provider('Thunderforest.Outdoors');
+            map.addLayer(lyrOsmHot);
+
+            baseLayers = {
+                "Open Street Map HOT" :    lyrOsmHot,
+                "OSM Mapnik":          lyrOsmMapnik,
+                "Topo Map"  :          openTopoMap,
+                "Imagery"   :          lyrImagery,
+                "Outdoors"  :          lyrOutdoors,
+                "Water color":         lyrWaterColor, 
+            };
+
+            spriteRed = L.spriteIcon('red');
+            spriteViolet = L.spriteIcon('violet');
+
+            //awesome-markers
+            iconLAMFemale =  L.AwesomeMarkers.icon({
+                icon: 'female',
+                prefix: 'fa',
+                markerColor: 'purple',
+            });
+
+            iconLAMMale = L.AwesomeMarkers.icon({
+                icon: 'male',
+                prefix: 'fa',
+                markerColor: 'darkblue',
+            });
+
+            //geoJSON overlay
+            lyrSchools = new L.GeoJSON.AJAX("data/monosexschoolsgt.geojson", {
+                pointToLayer:  makeSchoolMarkerLeafletAwesome,
+                filter:       filterSchools,
+            }).addTo(map);
+
+            lyrSchools.on('data:loaded', function(){
+                map.fitBounds(lyrSchools.getBounds());
+            });
+
+
+            overlys = {
+                "Escuelas segregadas (genero)":  lyrSchools,
+            };
+
+            
+            var ctlAttribute = L.control.attribution({position:'bottomright'}).addTo(map);
+                ctlAttribute.addAttribution('&copy; <a href="http://millermountain.com">Miller Mountain LLC</a>');
+                sidebar = L.control.sidebar('sidebar', {
+                position: 'left',
+                closeButton: true,
+                autoPan:    true,
+            }).addTo(map);
+
+            setTimeout( function(){
+
+            }, 500);
+
+            L.easyButton({
+                states: [
+                {
+                    stateName: 'openSideBar',
+                    icon:       'far fa-caret-square-right',
+                    title:      'Open side bar',
+                    onClick:    function(btn, map){
+                        sidebar.show();
+                        btn.state('closeSideBar');
+                    }
+                },
+                {
+                    stateName:  'closeSideBar',
+                    icon:       'far fa-caret-square-left',
+                    title:      'Close side bar',
+                    onClick:    function(btn, map){
+                        sidebar.hide();
+                        btn.state('openSideBar');
+                    }
+                }                
+                ]
+            }).addTo(map);
+
+            var lyrLines = new L.GeoJSON.AJAX('data/riversgt.geojson').addTo(map);
+
+            
+            ctlLayers = L.control.layers(baseLayers, overlys).addTo(map);
+           
+        });
+
+        //Native Leaflet elements
+        function makeSchoolMarkerNativeLeaflet(geoJSONPoint, latLng){
+            var att = geoJSONPoint.properties;
+            var color, wgtSchool, opcSchool, fillOpacity, dashSchool;
+            color = "deeppink";
+            if(att.genero === "HOMBRES"){
+                color = "blue";
+            }
+            if(att.estado === "ABIERTA"){
+                wgtSchool = 5;
+                opcSchool = 1;
+                fillOpacity = 0.5;
+                dashSchool = '';
+            }else{
+                wgtSchool = 1;
+                opcSchool = 0.5;
+                fillOpacity = 0.3;
+                dashSchool = '2, 8';
+            }
+            return L.circle(latLng, {
+                radius: 10,
+                color: color,
+                weight: wgtSchool,
+                opacity: opcSchool,
+                fillOpacity: fillOpacity,
+                dashArray: dashSchool,
+            }).bindPopup('<h4>Escuela de '+att.genero+'</h4><p>Nombre:'+att.nombre+'</p>');
+        }
+
+        //LEAFLET PLUGINS
+        //LeafLlet Sprite
+        function makeSchoolMarkerLeafletSprite(geoJSONPoint, latLng){
+            var att = geoJSONPoint.properties;
+            var schoolSprite = spriteViolet;
+            if(att.genero == "HOMBRES"){
+                schoolSprite = spriteRed;
+            }
+            return L.marker(latLng, {
+                icon: schoolSprite,
+            }).bindPopup('<h4>Escuela de '+att.genero+'</h4><p>Nombre:'+att.nombre+'</p>');
+        }
+
+        //Leaflet-awesome (fontawesome)
+        function makeSchoolMarkerLeafletAwesome(geoJSONPoint, latLng){
+            var att = geoJSONPoint.properties;
+            var faMarker;
+            if(att.genero === "HOMBRES"){
+                faMarker = iconLAMMale;
+            }else{
+                faMarker = iconLAMFemale;
+            }
+            return L.marker(latLng, {
+                icon: faMarker,
+            }).bindPopup('<h4>Escuela de '+att.genero+'</h4><p>Nombre:'+att.nombre+'</p>');            
+        }
+
+        function filterSchools(geoJsonFeature){
+            if(geoJsonFeature.properties.estado === "ABIERTA"){
+                return true;
+            }else{
+                return false;
+            }
+        }
+
+
+    </script>
+</body>
+</html>

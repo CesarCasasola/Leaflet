@@ -12,24 +12,47 @@
     <link rel="stylesheet" href="src/leaflet/plugins/geonames/L.Control.Geonames.css">
     <link rel="stylesheet" href="src/leaflet/plugins/mouseposition/L.Control.MousePosition.css">
     <link rel="stylesheet" href="src/leaflet/plugins/polylinemeasure/Leaflet.PolylineMeasure.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/easybutton/easy-button.css">
+    <!--<link rel="stylesheet" href="src/leaflet/plugins/sidebar/L.Control.Sidebar.css">-->
+    <link rel="stylesheet" href="src/fa/css/all.min.css">
+    <link rel="stylesheet" href="src/leaflet/plugins/sidebarv2/leaflet-sidebar.css">
     <script src="src/jquery-3.4.1.min.js"></script>
     <script src="src/leaflet/leaflet-src.js"></script>
     <script src="src/leaflet/plugins/pancontrol/L.Control.Pan.js"></script>
     <script src="src/leaflet/plugins/geonames/L.Control.Geonames.min.js"></script>
     <script src="src/leaflet/plugins/mouseposition/L.Control.MousePosition.js"></script>
     <script src="src/leaflet/plugins/polylinemeasure/Leaflet.PolylineMeasure.js"></script>
+    <script src="src/leaflet/plugins/easybutton/easy-button.js"></script>
+    <!--<script src="src/leaflet/plugins/sidebar/L.Control.Sidebar.js"></script>-->
+    <script src="src/leaflet/plugins/sidebarv2/leaflet-sidebar.js"></script>
     <style>
         #map{
-            height: 99vh;
+            height: 100vh;
+            width: 80vw;
         }
     </style>
 </head>
 <body>
-    <div class="row">
-            <div id="side-bar" class="col-md-3"></div>
-            <div id="map" class="col-md-9"></div>
+
+    <div id="sidebar" class="sidebar collapsed">
+        <div class="sidebar-tabs">
+            <ul class="tablist">
+                <li><a href="#tab1" role="tab"><i class="fas fa-bars"></i></a></li>
+            </ul>
+        </div>
+
+        <div class="sidebar-content">
+            <div class="sidebar-pane" id="tab1">
+                <h1 class="sidebar-header">
+                    Tab 1 <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+                </h1>
+                <p>Lorem ipsum</p>
+            </div>
+        </div>
     </div>
-    
+
+    <div id="map" class="sidebar-map"></div>
+
 
     <script>
         var map;
@@ -37,6 +60,9 @@
         var attributionControl;
         var geonamesControl;
         var zoomControl;
+        var sidebarControl;
+        var sidebarv2Control;
+
         $(document).ready(function(){
             map  = L.map('map', {
                 center: [14.4, -89.2],
@@ -54,17 +80,68 @@
                 maxresults:     10,
                 lang:           'es',
                 showMarker:     false,
-            });
+                position:       'topright'
+            });            
             map.addControl(geonamesControl);
+
             L.control.zoom({position: 'topleft'}).addTo(map);
+
             L.control.pan().addTo(map);
+
             //L.control.mousePosition().addTo(map);
+
             L.control.polylineMeasure().addTo(map);
 
+            /**
+            *   sidebar v1
+            sidebarControl = L.control.sidebar('side-bar', {
+                position: 'left',
+                closeButton: true,
+                autoPan: true,
+            }).addTo(map);
+            //give some time to apply css
+            setTimeout(function(){
+                
+            }, 500);  
+
+            L.easyButton({
+                states: [
+                {
+                    stateName: 'openSideBar',
+                    icon:       'far fa-caret-square-right',
+                    title:      'Open side bar',
+                    onClick:    function(btn, map){
+                        sidebarControl.show();
+                        btn.state('closeSideBar');
+                    }
+                },
+                {
+                    stateName:  'closeSideBar',
+                    icon:       'far fa-caret-square-left',
+                    title:      'Close side bar',
+                    onClick:    function(btn, map){
+                        sidebarControl.hide();
+                        btn.state('openSideBar');
+                    }
+                }                
+                ]
+            }).addTo(map);
+            */
             
+            var sidebar = L.control.sidebar('sidebar').addTo(map);                      
 
             attributionControl = L.control.attribution().addTo(map);
             attributionControl.addAttribution('OSM');
+
+
+
+            map.on('locationfound', function(e){
+                console.log(e);
+                L.circle(e.latlng, {
+                    radius: e.accuracy/2,
+                }).addTo(map);
+                map.setView(e.latlng, 10);
+            });
         });
     </script>
 </body>
